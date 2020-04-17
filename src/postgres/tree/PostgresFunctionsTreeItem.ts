@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Client, ClientConfig, QueryResult } from 'pg';
+import { QuickPickItem } from 'vscode';
 import { AzureParentTreeItem, IActionContext, ISubscriptionContext, TreeItemIconPath } from "vscode-azureextensionui";
 import { getThemeAgnosticIconPath } from "../../constants";
 import { ext } from '../../extensionVariables';
@@ -67,9 +68,14 @@ export class PostgresFunctionsTreeItem extends AzureParentTreeItem<ISubscription
             validateInput: value => this.validateFunctionName(value, schema)
         })).trim();
 
+        const returnTypeQuickPicks: QuickPickItem[] = returnTypes.map(r => { return { label: r }; });
+        const returnType: string = (await ext.ui.showQuickPick(returnTypeQuickPicks, {
+            placeHolder: localize('', 'Select return type')
+        })).label;
+
         this.addFunctionsAndSchemasEntry(name, schema);
 
-        const definition: string = defaultFunctionDefinition(schema, name);
+        const definition: string = defaultFunctionDefinition(schema, name, returnType);
         const isDuplicate: boolean = this._functionsAndSchemas[name].length > 1;
         return new PostgresFunctionTreeItem(this, { schema, name, definition }, isDuplicate);
     }
@@ -129,11 +135,21 @@ export class PostgresFunctionsTreeItem extends AzureParentTreeItem<ISubscription
     }
 }
 
-const defaultFunctionDefinition = (schema: string, name: string) => `CREATE OR REPLACE FUNCTION ${schema}.${name}()
- RETURNS <return type>
+const defaultFunctionDefinition = (schema: string, name: string, returnType: string) => `/* Save this file to execute the query and finish creating this function. */
+CREATE OR REPLACE FUNCTION ${schema}.${name}(/* arguments */)
+ RETURNS ${returnType}
  LANGUAGE plpgsql
 AS $function$
-	BEGIN
+    BEGIN
+    /* function definition */
 	END;
 $function$
 `;
+
+const returnTypes: string[] = [
+    'boolean',
+    'character',
+    'cstring',
+    'integer',
+    'void'
+];

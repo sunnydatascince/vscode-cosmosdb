@@ -228,7 +228,7 @@
             {
                 "category": "PostgreSQL",
                 "command": "cosmosDB.createPostgresFunction",
-                "title": "Create Function..."
+                "title": "Create Query From Template..."
             },
             {
                 "category": "Graph (Gremlin)",
