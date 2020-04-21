@@ -16,7 +16,8 @@ export async function createPostgresFunction(context: IActionContext, treeItem?:
         treeItem = <PostgresFunctionsTreeItem>await ext.tree.showTreeItemPicker(PostgresFunctionsTreeItem.contextValue, context);
     }
 
-    const queryType: QuickPickItem = await ext.ui.showQuickPick([{ label: localize('', 'Function') }], { placeHolder: localize('', 'Select query template type') });
+    const queryType: QuickPickItem = await ext.ui.showQuickPick([{ label: localize('', 'Function') }], { placeHolder: localize('', 'Select query template') });
+    console.log(queryType);
 
     const child: PostgresFunctionTreeItem = await treeItem.createChild(context);
     await openPostgresFunction(context, child);
