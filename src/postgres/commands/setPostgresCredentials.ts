@@ -12,7 +12,7 @@ interface IPersistedServer {
 
 export async function setPostgresCredentials(username: string, password: string, serverId: string): Promise<void> {
     if (ext.keytar) {
-        const serviceName: string = "ms-azuretools.vscode-cosmosdb.postgresPasswords";
+        const serviceName: string = "ms-azuretools.vscode-azuredatabases.postgresPasswords";
         const storedValue: string | undefined = ext.context.globalState.get(serviceName);
         let servers: IPersistedServer[] = storedValue ? JSON.parse(storedValue) : [];
 

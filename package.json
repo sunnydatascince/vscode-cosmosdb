@@ -83,7 +83,10 @@
         "onCommand:postgreSQL.openFunction",
         "onCommand:postgreSQL.deleteFunction",
         "onCommand:postgreSQL.enterCredentials",
-        "onCommand:postgreSQL.configureFirewall"
+        "onCommand:postgreSQL.configureFirewall",
+        "onCommand:postgreSQL.connectDatabase",
+        "onCommand:postgreSQL.createQuery",
+        "onCommand:postgreSQL.executeQuery"
     ],
     "contributes": {
         "viewsContainers": {
@@ -396,6 +399,21 @@
                 "category": "PostgreSQL",
                 "command": "postgreSQL.configureFirewall",
                 "title": "Configure Firewall"
+            },
+            {
+                "category": "PostgreSQL",
+                "command": "postgreSQL.connectDatabase",
+                "title": "Connect to Database..."
+            },
+            {
+                "category": "PostgreSQL",
+                "command": "postgreSQL.createQuery",
+                "title": "Create Query From Template..."
+            },
+            {
+                "category": "PostgreSQL",
+                "command": "postgreSQL.executeQuery",
+                "title": "Execute Query..."
             }
         ],
         "menus": {
@@ -427,6 +445,10 @@
                 {
                     "command": "cosmosDB.importDocument",
                     "when": "resourceLangId==json"
+                },
+                {
+                    "command": "postgreSQL.connectDatabase",
+                    "when": "resourceLangId==sql"
                 }
             ],
             "editor/title": [
@@ -775,12 +797,28 @@
                 {
                     "command": "cosmosDB.importDocument",
                     "when": "view == azureDatabasesExplorer && viewItem == cosmosDBDocumentCollection"
+                },
+                {
+                    "command": "postgreSQL.connectDatabase",
+                    "when": "view == azureDatabasesExplorer && viewItem == postgresDatabase"
+                },
+                {
+                    "command": "postgreSQL.createQuery",
+                    "when": "view == azureDatabasesExplorer && viewItem == postgresDatabase"
+                },
+                {
+                    "command": "postgreSQL.executeQuery",
+                    "when": "view == azureDatabasesExplorer && viewItem == postgresDatabase"
                 }
             ],
             "explorer/context": [
                 {
                     "command": "cosmosDB.importDocument",
                     "when": "resourceLangId == json"
+                },
+                {
+                    "command": "postgreSQL.connectDatabase",
+                    "when": "resourceLangId == sql"
                 }
             ],
             "commandPalette": [
