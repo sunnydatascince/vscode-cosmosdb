@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { commands, languages } from "vscode";
+import { languages } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext, registerCommand } from "vscode-azureextensionui";
 import { doubleClickDebounceDelay } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { PostgresCodeLensProvider } from "../services/PostgresCodeLensProvider";
+import { PostgresDatabaseTreeItem } from "../tree/PostgresDatabaseTreeItem";
 import { configurePostgresFirewall } from "./configurePostgresFirewall";
 import { connectPostgresDatabase } from "./connectPostgresDatabase";
 import { createPostgresDatabase } from "./createPostgresDatabase";
@@ -21,7 +22,7 @@ import { enterPostgresCredentials } from "./enterPostgresCredentials";
 import { executePostgresQuery } from "./executePostgresQuery";
 import { openPostgresFunction } from "./openPostgresFunction";
 
-export const connectedDBKey: string = 'ms-azuretools.vscode-azuredatabases.connectedPostgresDB';
+export const connectedPostgresKey: string = 'ms-azuretools.vscode-azuredatabases.connectedPostgresDB';
 const postgresLanguageId: string = 'sql';
 
 export function registerPostgresCommands(): void {
@@ -52,11 +53,11 @@ export async function loadPersistedPostgresDatabase(): Promise<void> {
         context.telemetry.properties.isActivationEvent = 'true';
 
         try {
-            const persistedTreeItemId: string | undefined = ext.context.globalState.get(connectedDBKey);
+            const persistedTreeItemId: string | undefined = ext.context.globalState.get(connectedPostgresKey);
             if (persistedTreeItemId) {
-                const persistedTreeItem = await ext.tree.findTreeItem(persistedTreeItemId, context);
+                const persistedTreeItem: PostgresDatabaseTreeItem | undefined = <PostgresDatabaseTreeItem>await ext.tree.findTreeItem(persistedTreeItemId, context);
                 if (persistedTreeItem) {
-                    await commands.executeCommand('postgreSQL.connectDatabase', persistedTreeItem);
+                    await connectPostgresDatabase(context, persistedTreeItem);
                 }
             }
         } finally {
