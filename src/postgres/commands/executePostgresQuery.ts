@@ -52,6 +52,10 @@ export async function executePostgresQuery(context: IActionContext, treeItem?: P
     await client.connect();
     const queryResult: QueryResult = await client.query(query);
 
+    let resultString: string = localize('executedQuery', 'Successfully executed "{0}" query.', queryResult.command);
+    const fieldsString: string = queryResult.fields.length ? `[${queryResult.fields.map(field => field.name).join(', ')}]` : 'none';
+    resultString += localize('fieldsReturned', '\n\tFields returned: {0}', fieldsString);
+
     ext.outputChannel.show();
-    ext.outputChannel.appendLine(localize('executedQuery', 'Successfully executed "{0}" query.', queryResult.command));
+    ext.outputChannel.appendLine(resultString);
 }
