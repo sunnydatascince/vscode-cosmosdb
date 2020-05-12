@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext } from "vscode-azureextensionui";
+import { postgresFileExtension } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as vscodeUtil from '../../utils/vscodeUtils';
 import { PostgresFunctionTreeItem } from "../tree/PostgresFunctionTreeItem";
@@ -14,5 +15,5 @@ export async function openPostgresFunction(context: IActionContext, treeItem?: P
     }
 
     const fileName: string = `${treeItem.label} (${treeItem.parent.parent.parent.server.name}.${treeItem.schema})`;
-    await vscodeUtil.showNewFile(treeItem.definition, fileName, '.sql');
+    await vscodeUtil.showNewFile(treeItem.definition, fileName, postgresFileExtension);
 }

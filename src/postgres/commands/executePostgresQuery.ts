@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fse from 'fs-extra';
 import { Client, ClientConfig, QueryResult } from 'pg';
 import * as vscode from 'vscode';
 import { IActionContext, IParsedError, parseError } from 'vscode-azureextensionui';
+import { postgresFileExtension } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../utils/localize';
 import { firewallNotConfiguredErrorType, invalidCredentialsErrorType, PostgresDatabaseTreeItem } from '../tree/PostgresDatabaseTreeItem';
@@ -42,19 +44,34 @@ export async function executePostgresQuery(context: IActionContext, treeItem?: P
     }
 
     const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-    const query: string | undefined = activeEditor?.document.getText();
 
-    if (!query) {
+    if (!activeEditor?.document) {
         throw new Error(localize('openQueryBeforeExecuting', 'Open a PostgreSQL query before executing.'));
     }
 
+    const query: string | undefined = activeEditor.document.getText();
     const client: Client = new Client(clientConfig);
     await client.connect();
     const queryResult: QueryResult = await client.query(query);
 
     let resultString: string = localize('executedQuery', 'Successfully executed "{0}" query.', queryResult.command);
     if (queryResult.rowCount) {
-        resultString += `\n\t${JSON.stringify(queryResult.rows)}`;
+        const queryFileName = activeEditor.document.fileName;
+        const fileExtensionIndex: number = queryFileName.endsWith(postgresFileExtension) ? queryFileName.length - postgresFileExtension.length : queryFileName.length;
+        const outputFileName: string = `${queryFileName.slice(0, fileExtensionIndex)}-output.csv`;
+
+        const fields: string[] = queryResult.fields.map(f => f.name);
+        let csvData: string = `${fields.join(',')}\n`;
+
+        for (const row of queryResult.rows) {
+            for (const field of fields) {
+                csvData += `${row[field]},`;
+            }
+            csvData += '\n';
+        }
+
+        await fse.writeFile(outputFileName, csvData);
+        resultString += localize('resultsWrittenToFile', ' Results written to file "{0}"', outputFileName);
     }
 
     ext.outputChannel.show();
