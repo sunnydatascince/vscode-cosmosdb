@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fse from 'fs-extra';
+import * as path from 'path';
 import { Client, ClientConfig, QueryResult } from 'pg';
 import * as vscode from 'vscode';
 import { IActionContext, IParsedError, parseError } from 'vscode-azureextensionui';
 import { postgresFileExtension } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../utils/localize';
+import * as vscodeUtil from '../../utils/vscodeUtils';
 import { firewallNotConfiguredErrorType, invalidCredentialsErrorType, PostgresDatabaseTreeItem } from '../tree/PostgresDatabaseTreeItem';
 import { configurePostgresFirewall } from './configurePostgresFirewall';
 import { enterPostgresCredentials } from './enterPostgresCredentials';
@@ -54,26 +55,25 @@ export async function executePostgresQuery(context: IActionContext, treeItem?: P
     await client.connect();
     const queryResult: QueryResult = await client.query(query);
 
-    let resultString: string = localize('executedQuery', 'Successfully executed "{0}" query.', queryResult.command);
     if (queryResult.rowCount) {
-        const queryFileName = activeEditor.document.fileName;
+        const queryFileName = path.basename(activeEditor.document.fileName);
         const fileExtensionIndex: number = queryFileName.endsWith(postgresFileExtension) ? queryFileName.length - postgresFileExtension.length : queryFileName.length;
-        const outputFileName: string = `${queryFileName.slice(0, fileExtensionIndex)}-output.csv`;
+        const outputFileName: string = `${queryFileName.slice(0, fileExtensionIndex)}-output`;
 
         const fields: string[] = queryResult.fields.map(f => f.name);
         let csvData: string = `${fields.join(',')}\n`;
 
         for (const row of queryResult.rows) {
+            const rowArray: string[] = [];
             for (const field of fields) {
-                csvData += `${row[field]},`;
+                rowArray.push(row[field]);
             }
-            csvData += '\n';
+            csvData += `${rowArray.join(',')}\n`;
         }
 
-        await fse.writeFile(outputFileName, csvData);
-        resultString += localize('resultsWrittenToFile', ' Results written to file "{0}"', outputFileName);
+        await vscodeUtil.showNewFile(csvData, outputFileName, '.csv');
     }
 
     ext.outputChannel.show();
-    ext.outputChannel.appendLine(resultString);
+    ext.outputChannel.appendLine(localize('executedQuery', 'Successfully executed "{0}" query.', queryResult.command));
 }
